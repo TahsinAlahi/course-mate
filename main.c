@@ -34,6 +34,8 @@ Enrollment *enrollments = NULL;
 
 // Global variables
 int userCount = 0;
+int courseCount = 0;
+int enrollmentCount = 0;
 User *currentUser = NULL;
 
 // Utils
@@ -61,6 +63,38 @@ void loadUsers() {
     if (userCount >= MAX_USERS)
       break;
   }
+  fclose(fp);
+}
+
+// Load courses from file into memory
+void loadCourses() {
+  FILE *fp = fopen("courses.txt", "r");
+
+  if (fp == NULL) {
+    printf("File not found\n");
+    return;
+  }
+
+  while (fscanf(fp, "%d|%49[^|]|%49[^\n]\n", &courses[courseCount].id,
+                courses[courseCount].title,
+                courses[courseCount].instructorEmail) != EOF) {
+    courseCount++;
+    if (courseCount >= MAX_COURSES)
+      break;
+  }
+
+  fclose(fp);
+}
+
+// Save user to file
+void saveUserToFile(User user) {
+  FILE *fp = fopen("users.txt", "a");
+  if (fp == NULL) {
+    printf("File not found\n");
+    return;
+  }
+
+  fprintf(fp, "%s %s %s %s\n", user.name, user.email, user.password, user.role);
   fclose(fp);
 }
 
@@ -106,18 +140,6 @@ int loginUser() {
   }
 }
 
-// Save user to file
-void saveUserToFile(User user) {
-  FILE *fp = fopen("users.txt", "a");
-  if (fp == NULL) {
-    printf("File not found\n");
-    return;
-  }
-
-  fprintf(fp, "%s %s %s %s\n", user.name, user.email, user.password, user.role);
-  fclose(fp);
-}
-
 // Show student menu
 void showStudentMenu() {
   int choice;
@@ -143,6 +165,37 @@ void showStudentMenu() {
   } while (choice != 0);
 }
 
+// Create a course
+void createCourse() {
+  clearScreen();
+
+  if (courseCount >= MAX_COURSES) {
+    printf("Maximum number of courses reached.\n");
+    pause();
+    return;
+  }
+
+  Course course;
+  course.id = courseCount + 1;
+
+  printf("Enter course title: ");
+  scanf("%[^\n]", course.title);
+  strcpy(course.instructorEmail, currentUser->email);
+  courses[courseCount++] = course;
+  printf("Course created!\n");
+  pause();
+}
+
+// View all courses
+void viewAllCourses() {
+  clearScreen();
+  for (int i = 0; i < courseCount; i++) {
+    printf("ID: %d | Title: %s | Instructor: %s\n", courses[i].id,
+           courses[i].title, courses[i].instructorEmail);
+  }
+  pause();
+}
+
 // Show instructor menu
 void showInstructorMenu() {
   int choice;
@@ -153,11 +206,10 @@ void showInstructorMenu() {
     scanf("%d", &choice);
     switch (choice) {
     case 1:
-      // TODO: create a course
+      createCourse();
       break;
     case 2:
-      // TODO: view all courses
-      break;
+      viewAllCourses() break;
     default:
       printf("Invalid choice. Please try again.\n");
       break;
@@ -206,9 +258,10 @@ int main() {
     return 1;
   }
 
-  // loadUsers();
+  loadUsers();
+  loadCourses();
 
-  registerUser();
+  // registerUser();
 
   free(users);
   free(courses);

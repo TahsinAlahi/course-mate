@@ -1,3 +1,3 @@
-1|Introduction_to_C|bob@example.com
-2|Data_Structures|bob@example.com
+1|Introduction to C|bob@example.com
+2|Data Structures|bob@example.com
 3|Algorithms|bob@example.com
