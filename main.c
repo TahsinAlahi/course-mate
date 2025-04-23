@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Maximum number of users, courses, and enrollments
 #define MAX_USERS 100
@@ -34,6 +35,16 @@ Enrollment *enrollments = NULL;
 // Global variables
 int userCount = 0;
 
+// Utils
+void clearScreen() { system("cls||clear"); }
+
+void pause() {
+  printf("\nPress Enter to continue...");
+  getchar();
+  getchar();
+}
+
+// Load users from file into memory
 void loadUsers() {
   FILE *fp = fopen("users.txt", "r");
 
@@ -52,6 +63,39 @@ void loadUsers() {
   fclose(fp);
 }
 
+// Register a new user
+void registerUser() {
+  clearScreen();
+  User user;
+  printf("Enter name: ");
+  scanf("%s", user.name);
+  printf("Enter email: ");
+  scanf("%s", user.email);
+  printf("Enter password: ");
+  scanf("%s", user.password);
+  while (strcmp(user.role, "student") && strcmp(user.role, "instructor")) {
+    printf("Enter role (student/instructor): ");
+    scanf("%s", user.role);
+  }
+
+  users[userCount++] = user;
+  saveUserToFile(user);
+  printf("Register Successfully!\n");
+  pause();
+}
+
+// Save user to file
+void saveUserToFile(User user) {
+  FILE *fp = fopen("users.txt", "a");
+  if (fp == NULL) {
+    printf("File not found\n");
+    return;
+  }
+
+  fprintf(fp, "%s %s %s %s\n", user.name, user.email, user.password, user.role);
+  fclose(fp);
+}
+
 void showMainMenu() {
   int choice;
   do {
@@ -59,7 +103,7 @@ void showMainMenu() {
     scanf("%d", &choice);
     switch (choice) {
     case 1:
-      // TODO: register user
+      registerUser();
       break;
     case 2:
       // TODO: login user
@@ -82,9 +126,9 @@ int main() {
     return 1;
   }
 
-  // showMainMenu();
+  // loadUsers();
 
-  loadUsers();
+  registerUser();
 
   free(users);
   free(courses);
