@@ -86,6 +86,25 @@ void loadCourses() {
   fclose(fp);
 }
 
+// Load enrollments from file into memory
+void loadEnrollments() {
+  FILE *fp = fopen("enrollments.txt", "r");
+
+  if (fp == NULL) {
+    printf("File not found\n");
+    return;
+  }
+
+  while (fscanf(fp, "%49[^|]|%d\n", enrollments[enrollmentCount].studentEmail,
+                &enrollments[enrollmentCount].courseId) != EOF) {
+    enrollmentCount++;
+    if (enrollmentCount >= MAX_ENROLLMENTS)
+      break;
+  }
+
+  fclose(fp);
+}
+
 // Save user to file
 void saveUserToFile(User user) {
   FILE *fp = fopen("users.txt", "a");
@@ -140,6 +159,46 @@ int loginUser() {
   }
 }
 
+// Enroll in a course
+// TODO: Check this again
+void enrollInCourse() {
+  clearScreen();
+  int id;
+  viewAllCourses();
+  printf("\nEnter Course ID to enroll: ");
+  scanf("%d", &id);
+  for (int i = 0; i < courseCount; i++) {
+    if (courses[i].id == id) {
+      Enrollment e;
+      strcpy(e.studentEmail, currentUser->email);
+      e.courseId = id;
+      enrollments[enrollmentCount++] = e;
+      printf("Enrolled successfully!\n");
+      pause();
+      return;
+    }
+  }
+  printf("Invalid Course ID\n");
+  pause();
+}
+
+// View student enrollments
+// TODO: recheck this function
+void viewStudentEnrollments() {
+  clearScreen();
+  printf("Your Enrollments:\n");
+  for (int i = 0; i < enrollmentCount; i++) {
+    if (strcmp(enrollments[i].studentEmail, currentUser->email) == 0) {
+      for (int j = 0; j < courseCount; j++) {
+        if (courses[j].id == enrollments[i].courseId) {
+          printf("%s\n", courses[j].title);
+        }
+      }
+    }
+  }
+  pause();
+}
+
 // Show student menu
 void showStudentMenu() {
   int choice;
@@ -150,13 +209,13 @@ void showStudentMenu() {
     scanf("%d", &choice);
     switch (choice) {
     case 1:
-      // TODO: view all courses
+      viewAllCourses();
       break;
     case 2:
-      // TODO: enroll in a course
+      enrollInCourse();
       break;
     case 3:
-      // TODO: view my enrollments
+      viewStudentEnrollments();
       break;
     default:
       printf("Invalid choice. Please try again.\n");
@@ -209,7 +268,8 @@ void showInstructorMenu() {
       createCourse();
       break;
     case 2:
-      viewAllCourses() break;
+      viewAllCourses();
+      break;
     default:
       printf("Invalid choice. Please try again.\n");
       break;
@@ -260,6 +320,7 @@ int main() {
 
   loadUsers();
   loadCourses();
+  loadEnrollments();
 
   // registerUser();
 
