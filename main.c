@@ -34,6 +34,7 @@ Enrollment *enrollments = NULL;
 
 // Global variables
 int userCount = 0;
+User *currentUser = NULL;
 
 // Utils
 void clearScreen() { system("cls||clear"); }
@@ -71,6 +72,7 @@ void registerUser() {
   scanf("%s", user.name);
   printf("Enter email: ");
   scanf("%s", user.email);
+  // TODO: Check if the email is unique
   printf("Enter password: ");
   scanf("%s", user.password);
   while (strcmp(user.role, "student") && strcmp(user.role, "instructor")) {
@@ -82,6 +84,26 @@ void registerUser() {
   saveUserToFile(user);
   printf("Register Successfully!\n");
   pause();
+}
+
+// Login a user
+int loginUser() {
+  clearScreen();
+  char email[50], password[30];
+  printf("Email: ");
+  scanf("%s", email);
+  printf("Password: ");
+  scanf("%s", password);
+
+  for (int i = 0; i < userCount; i++) {
+    if (strcmp(users[i].email, email) && strcmp(users[i].password, password)) {
+      currentUser = &users[i];
+      return 1;
+    } else {
+      printf("Invalid email or password\n");
+      return 0;
+    }
+  }
 }
 
 // Save user to file
@@ -96,6 +118,53 @@ void saveUserToFile(User user) {
   fclose(fp);
 }
 
+// Show student menu
+void showStudentMenu() {
+  int choice;
+  do {
+    clearScreen();
+    printf("1. View Courses\n2. Enroll in Course\n3. My Enrollments\n0. "
+           "Logout\nChoice: ");
+    scanf("%d", &choice);
+    switch (choice) {
+    case 1:
+      // TODO: view all courses
+      break;
+    case 2:
+      // TODO: enroll in a course
+      break;
+    case 3:
+      // TODO: view my enrollments
+      break;
+    default:
+      printf("Invalid choice. Please try again.\n");
+      break;
+    }
+  } while (choice != 0);
+}
+
+// Show instructor menu
+void showInstructorMenu() {
+  int choice;
+  do {
+    clearScreen();
+
+    printf("1. Create Course\n2. View Courses\nChoice: ");
+    scanf("%d", &choice);
+    switch (choice) {
+    case 1:
+      // TODO: create a course
+      break;
+    case 2:
+      // TODO: view all courses
+      break;
+    default:
+      printf("Invalid choice. Please try again.\n");
+      break;
+    }
+  } while (choice != 0);
+}
+
 void showMainMenu() {
   int choice;
   do {
@@ -106,7 +175,18 @@ void showMainMenu() {
       registerUser();
       break;
     case 2:
-      // TODO: login user
+      int loggedInUser = loginUser();
+
+      if (loggedInUser) {
+        if (strcmp(currentUser->role, "student") == 1) {
+          // TODO: show student menu
+        } else {
+          // TODO: show instructor menu
+        }
+      } else {
+        printf("Login failed!\n");
+        pause();
+      }
       break;
 
     default:
