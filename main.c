@@ -71,7 +71,7 @@ void loadCourses() {
   FILE *fp = fopen("courses.txt", "r");
 
   if (fp == NULL) {
-    printf("File not found\n");
+    printf("File not found.\n");
     return;
   }
 
@@ -117,6 +117,28 @@ void saveUserToFile(User user) {
   fclose(fp);
 }
 
+// Save course to file
+void saveCourseToFile(Course course) {
+  FILE *fp = fopen("courses.txt", "a");
+  if (fp == NULL) {
+    printf("Could not open courses.txt for appending.\n");
+    return;
+  }
+  fprintf(fp, "%d|%s|%s\n", course.id, course.title, course.instructorEmail);
+  fclose(fp);
+}
+
+// Save enrollment to file
+void saveEnrollmentToFile(Enrollment enrollment) {
+  FILE *fp = fopen("enrollments.txt", "a");
+  if (fp == NULL) {
+    printf("Could not open enrollments.txt for appending.\n");
+    return;
+  }
+  fprintf(fp, "%s|%d\n", enrollment.studentEmail, enrollment.courseId);
+  fclose(fp);
+}
+
 // Register a new user
 void registerUser() {
   clearScreen();
@@ -128,10 +150,11 @@ void registerUser() {
   // TODO: Check if the email is unique
   printf("Enter password: ");
   scanf("%s", user.password);
-  while (strcmp(user.role, "student") && strcmp(user.role, "instructor")) {
+  do {
     printf("Enter role (student/instructor): ");
     scanf("%s", user.role);
-  }
+  } while (strcmp(user.role, "student") != 0 &&
+           strcmp(user.role, "instructor") != 0);
 
   users[userCount++] = user;
   saveUserToFile(user);
@@ -159,6 +182,16 @@ int loginUser() {
   }
 }
 
+// View all courses
+void viewAllCourses() {
+  clearScreen();
+  for (int i = 0; i < courseCount; i++) {
+    printf("ID: %d | Title: %s | Instructor: %s\n", courses[i].id,
+           courses[i].title, courses[i].instructorEmail);
+  }
+  pause();
+}
+
 // Enroll in a course
 // TODO: Check this again
 void enrollInCourse() {
@@ -167,6 +200,18 @@ void enrollInCourse() {
   viewAllCourses();
   printf("\nEnter Course ID to enroll: ");
   scanf("%d", &id);
+
+  // Check if already enrolled
+  for (int i = 0; i < enrollmentCount; i++) {
+    if (strcmp(enrollments[i].studentEmail, currentUser->email) == 0 &&
+        enrollments[i].courseId == id) {
+      printf("Already enrolled in this course.\n");
+      pause();
+      return;
+    }
+  }
+
+  // Enroll
   for (int i = 0; i < courseCount; i++) {
     if (courses[i].id == id) {
       Enrollment e;
@@ -237,21 +282,15 @@ void createCourse() {
   Course course;
   course.id = courseCount + 1;
 
+  getchar(); // to consume leftover newline
   printf("Enter course title: ");
-  scanf("%[^\n]", course.title);
+  fgets(course.title, sizeof(course.title), stdin);
+  course.title[strcspn(course.title, "\n")] = '\0'; // Remove trailing newline
   strcpy(course.instructorEmail, currentUser->email);
-  courses[courseCount++] = course;
-  printf("Course created!\n");
-  pause();
-}
 
-// View all courses
-void viewAllCourses() {
-  clearScreen();
-  for (int i = 0; i < courseCount; i++) {
-    printf("ID: %d | Title: %s | Instructor: %s\n", courses[i].id,
-           courses[i].title, courses[i].instructorEmail);
-  }
+  courses[courseCount++] = course;
+  saveCourseToFile(course);
+  printf("Course created successfully!\n");
   pause();
 }
 
@@ -260,8 +299,8 @@ void showInstructorMenu() {
   int choice;
   do {
     clearScreen();
-
-    printf("1. Create Course\n2. View Courses\nChoice: ");
+    printf("Instructor Menu:\n");
+    printf("1. Create Course\n2. View Courses\n0. Logout\nChoice: ");
     scanf("%d", &choice);
     switch (choice) {
     case 1:
@@ -270,42 +309,47 @@ void showInstructorMenu() {
     case 2:
       viewAllCourses();
       break;
-    default:
-      printf("Invalid choice. Please try again.\n");
+    case 0:
+      printf("Logging out...\n");
       break;
+    default:
+      printf("Invalid choice. Try again.\n");
+      pause();
     }
   } while (choice != 0);
 }
 
+// Show main menu
 void showMainMenu() {
   int choice;
   do {
-    printf("welcome to CourseMate!\n1. Register\n2. Login\n3. Exit\n Choice:");
+    clearScreen();
+    printf("Welcome to CourseMate!\n");
+    printf("1. Register\n2. Login\n3. Exit\nChoice: ");
     scanf("%d", &choice);
     switch (choice) {
     case 1:
       registerUser();
       break;
-    case 2:
+    case 2: {
       int loggedInUser = loginUser();
-
       if (loggedInUser) {
-        if (strcmp(currentUser->role, "student") == 1) {
-          // TODO: show student menu
+        if (strcmp(currentUser->role, "student") == 0) {
+          showStudentMenu();
         } else {
-          // TODO: show instructor menu
+          showInstructorMenu();
         }
-      } else {
-        printf("Login failed!\n");
-        pause();
       }
       break;
-
-    default:
-      printf("Invalid choice. Please try again.\n");
-      break;
     }
-  } while (choice != 0);
+    case 3:
+      printf("Thank you for using CourseMate!\n");
+      break;
+    default:
+      printf("Invalid choice. Try again.\n");
+      pause();
+    }
+  } while (choice != 3);
 }
 
 int main() {
@@ -322,7 +366,7 @@ int main() {
   loadCourses();
   loadEnrollments();
 
-  // registerUser();
+  showMainMenu();
 
   free(users);
   free(courses);
