@@ -193,7 +193,6 @@ void viewAllCourses() {
 }
 
 // Enroll in a course
-// TODO: Check this again
 void enrollInCourse() {
   clearScreen();
   int id;
@@ -228,7 +227,6 @@ void enrollInCourse() {
 }
 
 // View student enrollments
-// TODO: recheck this function
 void viewStudentEnrollments() {
   clearScreen();
   printf("Your Enrollments:\n");
